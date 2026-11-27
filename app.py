@@ -5,6 +5,9 @@ import sys
 
 import django
 from django.conf import settings
+from django.core.wsgi import get_wsgi_application
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # 1. KONFIGURASI DJANGO
 if not settings.configured:
@@ -50,7 +53,7 @@ from django.urls import path
 from sklearn.tree import plot_tree
 
 # 2. MUAT MODEL & BUAT GAMBAR POHON KEPUTUSAN SEKALI SAAT SERVER NYALA
-paket = joblib.load("model_stunting.joblib")
+paket = joblib.load(os.path.join(BASE_DIR, "model_stunting.joblib"))
 model = paket["model"]
 
 fig, ax = plt.subplots(figsize=(20, 10), dpi=200)
@@ -283,7 +286,7 @@ HTML_TEMPLATE = """
                     <p class="fw-bold small text-uppercase text-muted mb-2">Confusion Matrix (Data Uji)</p>
                     <table class="table table-bordered table-sm text-center align-middle">
                         <thead class="table-light">
-                            <tr><th>Aktual \ Prediksi</th><th>Tebakan: Normal</th><th>Tebakan: Stunting</th></tr>
+                            <tr><th>Aktual \\ Prediksi</th><th>Tebakan: Normal</th><th>Tebakan: Stunting</th></tr>
                         </thead>
                         <tbody>
                             <tr><th class="table-light">Asli: Normal</th><td class="fw-semibold text-success">{{ cm.0.0 }}</td><td class="text-muted">{{ cm.0.1 }}</td></tr>
@@ -339,7 +342,9 @@ def index(request):
     else:
         batas_stunting = round(45.4 + (umur_bulan * 0.91), 1)
 
-    sampel_df = pd.read_csv("data_stunting.csv").sample(10, random_state=42)
+    sampel_df = pd.read_csv(
+        os.path.join(BASE_DIR, "data_stunting.csv")
+    ).sample(10, random_state=42)
 
     context = {
         "hasil": hasil,
@@ -364,6 +369,9 @@ def index(request):
 urlpatterns = [
     path("", index, name="index"),
 ]
+
+application = get_wsgi_application()
+app = application
 
 if __name__ == "__main__":
     execute_from_command_line(sys.argv)
